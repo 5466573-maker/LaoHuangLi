@@ -1,0 +1,9 @@
+{
+  "scripts": [
+    {
+      "path": "codeact/keepalive_huangli.py",
+      "description": "老黄历页面保活脚本，定期访问托管页面防止休眠",
+      "runtime": "python3"
+    }
+  ]
+}

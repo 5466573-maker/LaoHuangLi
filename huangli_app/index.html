@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c41e3a">
+  <title>老黄历 - 今日宜忌</title>
+  <link rel="stylesheet" href="theme.css">
+  <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.min.js"></script>
+  <style>
+    /* 头部导航 */
+    .header {
+      background: var(--color-primary);
+      color: white;
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .nav-btn {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .nav-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      padding: var(--space-lg);
+      flex: 1;
+    }
+
+    /* 日期卡片 */
+    .date-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .date-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-gold));
+    }
+
+    .solar-date {
+      font-size: 1rem;
+      color: var(--color-muted-text);
+      margin-bottom: var(--space-xs);
+    }
+
+    .lunar-date {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: var(--space-sm);
+    }
+
+    .date-details {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+      font-size: 0.875rem;
+      color: var(--color-muted-text);
+    }
+
+    .date-detail-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .date-detail-label {
+      color: var(--color-muted-text);
+    }
+
+    .date-detail-value {
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    /* 宜忌卡片 */
+    .yiji-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--space-lg);
+    }
+
+    .yiji-section {
+      padding: var(--space-lg);
+    }
+
+    .yiji-section + .yiji-section {
+      border-top: 1px dashed var(--color-border);
+    }
+
+    .yiji-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+
+    .yiji-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .yiji-icon.yi {
+      background: var(--color-success);
+    }
+
+    .yiji-icon.ji {
+      background: var(--color-danger);
+    }
+
+    .yiji-title {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .yiji-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .yiji-tag {
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-xs) var(--space-md);
+      font-size: 0.875rem;
+    }
+
+    .yiji-tag.yi {
+      border-color: #c8e6c9;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .yiji-tag.ji {
+      border-color: #ffcdd2;
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    /* 详细信息 */
+    .info-grid {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .info-grid-title {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-sm);
+      border-bottom: 2px solid var(--color-primary);
+      display: inline-block;
+    }
+
+    .info-list {
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: var(--color-muted-text);
+      font-size: 0.875rem;
+    }
+
+    .info-value {
+      font-weight: 500;
+      font-size: 0.9375rem;
+    }
+
+    /* 开运信息 */
+    .fortune-grid {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+      margin-top: var(--space-lg);
+    }
+
+    .fortune-grid-title {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-sm);
+      border-bottom: 2px solid var(--color-gold);
+      display: inline-block;
+    }
+
+    .fortune-items {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+
+    .fortune-item {
+      text-align: center;
+    }
+
+    .fortune-label {
+      color: var(--color-muted-text);
+      font-size: 0.875rem;
+      margin-bottom: var(--space-sm);
+    }
+
+    .fortune-value {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+    }
+
+    .color-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 2px solid var(--color-border);
+    }
+
+    /* 凶吉时辰 */
+    .shichen-grid {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+      margin-top: var(--space-lg);
+    }
+
+    .shichen-grid-title {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-sm);
+      border-bottom: 2px solid var(--color-primary);
+      display: inline-block;
+    }
+
+    .shichen-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-sm);
+    }
+
+    .shichen-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--color-surface-alt);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+    }
+
+    .shichen-time {
+      color: var(--color-muted-text);
+      font-size: 0.8125rem;
+    }
+
+    .shichen-status {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .shichen-status.ji {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .shichen-status.xiong {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    /* 今日建议 */
+    .advice-card {
+      background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+      margin-top: var(--space-lg);
+      border: 1px solid #f0d68a;
+    }
+
+    .advice-title {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: var(--space-md);
+      color: #8b6914;
+    }
+
+    .advice-content {
+      font-size: 0.9375rem;
+      line-height: 1.8;
+      color: #5a4a1a;
+      white-space: pre-line;
+    }
+
+    /* 上香日标记 */
+    .incense-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff6b35, #c41e3a);
+      color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-top: var(--space-sm);
+      margin-bottom: var(--space-xs);
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 4px rgba(196, 30, 58, 0.3); }
+      to { box-shadow: 0 0 12px rgba(196, 30, 58, 0.6); }
+    }
+
+    /* 上香日提醒横幅 */
+    .incense-reminder {
+      background: linear-gradient(90deg, #fff3e0, #ffe0b2);
+      border: 1px solid #ffb74d;
+      border-radius: var(--radius-md);
+      padding: var(--space-md) var(--space-lg);
+      margin-bottom: var(--space-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 0.9375rem;
+      color: #e65100;
+      font-weight: 500;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .incense-reminder .reminder-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    /* 底部日历提示 */
+    .calendar-hint {
+      background: var(--color-surface-alt);
+      border-radius: var(--radius-md);
+      padding: var(--space-md);
+      text-align: center;
+      margin-top: var(--space-lg);
+      font-size: 0.875rem;
+      color: var(--color-muted-text);
+    }
+
+    .calendar-hint a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* 动画 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .main-content > * {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .main-content > *:nth-child(2) { animation-delay: 0.1s; }
+    .main-content > *:nth-child(3) { animation-delay: 0.2s; }
+  </style>
+</head>
+<body data-page-id="home" data-entry="true">
+  <a href="#main" class="skip-link">跳转到主要内容</a>
+  
+  <div class="app-container">
+    <!-- 头部导航 -->
+    <header class="header" role="banner">
+      <button class="nav-btn" id="prevDay" aria-label="前一天">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h1 class="header-title">老黄历</h1>
+      <button class="nav-btn" id="nextDay" aria-label="后一天">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </header>
+
+    <!-- 主内容 -->
+    <main id="main" class="main-content" role="main">
+      <!-- 日期卡片 -->
+      <section class="date-card pattern-border" aria-label="今日日期">
+        <div class="solar-date" id="solarDate">2026年9月24日 星期四</div>
+        <div class="lunar-date" id="lunarDate">八月初十</div>
+        <div class="incense-badge" id="incenseBadge" style="display:none">🙏 今日上香日</div>
+        <div class="date-details">
+          <div class="date-detail-item">
+            <span class="date-detail-label">干支:</span>
+            <span class="date-detail-value" id="ganzhi">丙午年 丁酉月 辛卯日</span>
+          </div>
+          <div class="date-detail-item">
+            <span class="date-detail-label">星期:</span>
+            <span class="date-detail-value" id="weekday">四</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 上香日提醒 -->
+      <div class="incense-reminder" id="incenseBanner" style="display:none">
+      </div>
+
+      <!-- 宜忌卡片 -->
+      <section class="yiji-card" aria-label="今日宜忌">
+        <div class="yiji-section">
+          <div class="yiji-header">
+            <div class="yiji-icon yi">宜</div>
+            <h2 class="yiji-title">今日宜</h2>
+          </div>
+          <div class="yiji-tags" id="yiTags">
+            <span class="yiji-tag yi">嫁娶</span>
+            <span class="yiji-tag yi">祭祀</span>
+            <span class="yiji-tag yi">祈福</span>
+            <span class="yiji-tag yi">求嗣</span>
+            <span class="yiji-tag yi">开光</span>
+            <span class="yiji-tag yi">出行</span>
+            <span class="yiji-tag yi">动土</span>
+            <span class="yiji-tag yi">入宅</span>
+          </div>
+        </div>
+        <div class="yiji-section">
+          <div class="yiji-header">
+            <div class="yiji-icon ji">忌</div>
+            <h2 class="yiji-title">今日忌</h2>
+          </div>
+          <div class="yiji-tags" id="jiTags">
+            <span class="yiji-tag ji">开市</span>
+            <span class="yiji-tag ji">安葬</span>
+            <span class="yiji-tag ji">破土</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 详细信息 -->
+      <section class="info-grid" aria-label="详细信息">
+        <h2 class="info-grid-title">今日详情</h2>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">五行</span>
+            <span class="info-value" id="wuxing">松柏木</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">冲煞生肖</span>
+            <span class="info-value" id="chongShengxiaoDisplay">冲猪</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">凶方</span>
+            <span class="info-value" id="xiongDirection">东</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">吉方</span>
+            <span class="info-value" id="jiDirection">西</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">彭祖百忌</span>
+            <span class="info-value" id="pengzu">辛不合酱主人不尝 卯不穿井水泉不香</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">吉神宜趋</span>
+            <span class="info-value" id="jishen">月德合 天恩 四相 官日 六仪 益后 除神 玉堂 鸣吠</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">凶神宜忌</span>
+            <span class="info-value" id="xiongshen">月厌 地火 复日 九坎 九焦 血忌 天牢</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 开运信息 -->
+      <section class="fortune-grid" aria-label="开运信息">
+        <h2 class="fortune-grid-title">今日开运</h2>
+        <div class="fortune-items">
+          <div class="fortune-item">
+            <div class="fortune-label">开运颜色</div>
+            <div class="fortune-value" id="luckyColor">
+              <span class="color-dot" id="colorDot"></span>
+              <span id="colorName">红色</span>
+            </div>
+          </div>
+          <div class="fortune-item">
+            <div class="fortune-label">吉祥数字</div>
+            <div class="fortune-value" id="luckyNumber">1, 3, 4</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 凶吉时辰 -->
+      <section class="shichen-grid" aria-label="凶吉时辰">
+        <h2 class="shichen-grid-title">今日时辰吉凶</h2>
+        <div class="shichen-list" id="shichenList">
+          <!-- 动态生成 -->
+        </div>
+      </section>
+
+      <!-- 今日建议 -->
+      <section class="advice-card" aria-label="今日建议">
+        <h2 class="advice-title">📋 今日建议</h2>
+        <div class="advice-content" id="adviceContent">
+          <!-- 动态生成 -->
+        </div>
+      </section>
+
+      <!-- 底部提示 -->
+      <div class="calendar-hint">
+        💡 使用左右按钮切换日期查看不同黄历信息
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ========== 数据源：lunar-javascript 本地计算库 ==========
+    // 基于天文数据的完整黄历计算，无需网络请求
+    // GitHub: https://github.com/6tail/lunar-javascript
+
+    // 五行对应颜色
+    const wuxingColorMap = {
+      "金": { name: "白色", color: "#f5f5f5" },
+      "木": { name: "绿色", color: "#16a34a" },
+      "水": { name: "黑色", color: "#1f2937" },
+      "火": { name: "红色", color: "#dc2626" },
+      "土": { name: "黄色", color: "#eab308" }
+    };
+
+    // 吉祥数字
+    const wuxingNumberMap = {
+      "金": [4, 9, 3],
+      "木": [3, 8, 1],
+      "水": [1, 6, 4],
+      "火": [2, 7, 3],
+      "土": [5, 0, 2]
+    };
+
+    // 从纳音提取五行
+    function getWuxingElement(nayin) {
+      if (!nayin) return "土";
+      const lastChar = nayin.charAt(nayin.length - 1);
+      if ("金木水火土".includes(lastChar)) return lastChar;
+      return "土";
+    }
+
+    // 时辰时间映射
+    const shichenTimeMap = ["23-1", "1-3", "3-5", "5-7", "7-9", "9-11", "11-13", "13-15", "15-17", "17-19", "19-21", "21-23"];
+
+    // 使用 lunar-javascript 生成黄历数据
+    function generateAlmanacData(date) {
+      const solar = Solar.fromYmd(date.getFullYear(), date.getMonth() + 1, date.getDate());
+      const lunar = solar.getLunar();
+      
+      // 农历日期
+      const lunarYear = lunar.getYearInChinese();
+      const lunarMonth = lunar.getMonthInChinese();
+      const lunarDay = lunar.getDayInChinese();
+      const lunarDayNum = lunar.getDay(); // 农历日数（1-30）
+      const lunarStr = `${lunarMonth}月${lunarDay}`;
+      
+      // 干支
+      const yearGZ = lunar.getYearInGanZhi();
+      const monthGZ = lunar.getMonthInGanZhi();
+      const dayGZ = lunar.getDayInGanZhi();
+      const ganzhiStr = `${yearGZ}年 ${monthGZ}月 ${dayGZ}日`;
+      
+      // 生肖
+      const shengxiao = lunar.getYearShengXiao();
+      
+      // 公历日期
+      const weekNames = ["日", "一", "二", "三", "四", "五", "六"];
+      const solarStr = `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日 星期${weekNames[date.getDay()]}`;
+      const weekday = weekNames[date.getDay()];
+      
+      // 宜忌
+      const yi = lunar.getDayYi();
+      const ji = lunar.getDayJi();
+      
+      // 五行纳音
+      const nayin = lunar.getDayNaYin();
+      
+      // 值日天神 & 吉凶
+      const tianShen = lunar.getDayTianShen();
+      const tianShenType = lunar.getDayTianShenType();
+      const isJiri = tianShenType === "黄道";
+      const zhishenStr = `${tianShen}(${tianShenType})`;
+      
+      // 冲煞
+      const chong = lunar.getChong();
+      const sha = lunar.getSha();
+      const chongshaStr = `冲${chong}煞${sha}`;
+      
+      // 彭祖百忌
+      const pengzuGan = lunar.getPengZuGan();
+      const pengzuZhi = lunar.getPengZuZhi();
+      const pengzuStr = `${pengzuGan} ${pengzuZhi}`;
+      
+      // 吉神宜趋
+      const jiShen = lunar.getDayJiShen();
+      
+      // 凶神宜忌
+      const xiongSha = lunar.getDayXiongSha();
+      
+      // 开运颜色（根据纳音五行）
+      const element = getWuxingElement(nayin);
+      const luckyColor = wuxingColorMap[element] || { name: "红色", color: "#dc2626" };
+      const luckyNumbers = wuxingNumberMap[element] || [1, 3, 4];
+      
+      // 方位信息
+      const caiDirection = lunar.getDayPositionCaiDesc(); // 财神方位
+      const xiDirection = lunar.getDayPositionXiDesc(); // 喜神方位
+      const fuDirection = lunar.getDayPositionFuDesc(); // 福神方位
+      
+      // 冲煞属相转换（地支→生肖）
+      const dizhiToShengxiao = {
+        "子": "鼠", "丑": "牛", "寅": "虎", "卯": "兔",
+        "辰": "龙", "巳": "蛇", "午": "马", "未": "羊",
+        "申": "猴", "酉": "鸡", "戌": "狗", "亥": "猪"
+      };
+      const chongShengxiao = dizhiToShengxiao[chong] || chong;
+      
+      // 时辰吉凶（取前12个，排除第13个重复的子时）
+      const times = lunar.getTimes();
+      const shichenData = [];
+      const count = Math.min(times.length, 12);
+      for (let i = 0; i < count; i++) {
+        const t = times[i];
+        const tsName = t.getTianShen();
+        const tsType = t.getTianShenType();
+        const isJi = tsType === "黄道";
+        shichenData.push({
+          name: t.toString() + "时",
+          time: shichenTimeMap[i],
+          tianShen: tsName,
+          isJi: isJi
+        });
+      }
+      
+      return {
+        solar: solarStr,
+        lunar: lunarStr,
+        lunarDayNum: lunarDayNum,
+        ganzhi: ganzhiStr,
+        weekday: weekday,
+        shengxiao: shengxiao,
+        yi: yi.length ? yi : ["无"],
+        ji: ji.length ? ji : ["无"],
+        nayin: nayin,
+        zhishen: zhishenStr,
+        isJiri: isJiri,
+        chongsha: chongshaStr,
+        chongShengxiao: chongShengxiao,
+        sha: sha,
+        pengzu: pengzuStr,
+        jiShen: jiShen.join(" "),
+        xiongSha: xiongSha.join(" "),
+        luckyColor: luckyColor,
+        luckyNumbers: luckyNumbers,
+        caiDirection: caiDirection,
+        xiDirection: xiDirection,
+        fuDirection: fuDirection,
+        shichenData: shichenData,
+        element: element,
+        tianShen: tianShen
+      };
+    }
+
+    // 地支→生肖（用于建议文案）
+    const shengxiaoMap = {
+      "子": "鼠", "丑": "牛", "寅": "虎", "卯": "兔",
+      "辰": "龙", "巳": "蛇", "午": "马", "未": "羊",
+      "申": "猴", "酉": "鸡", "戌": "狗", "亥": "猪"
+    };
+
+    // 生成今日建议（生活化白话版，200-300字）
+    function generateAdvice(data) {
+      const parts = [];
+      
+      // 1. 开场：整体运势（生活化表达）
+      if (data.isJiri) {
+        parts.push(`今天日子不错，${data.tianShen}值日，是个适合行动的好日子，心里想做的事可以大胆推进。`);
+      } else {
+        parts.push(`今天${data.tianShen}值日，气场偏弱，适合低调行事，能缓的事不急，稳一稳更安心。`);
+      }
+      
+      // 2. 穿着开运（结合五行颜色，生活化表达）
+      const color = data.luckyColor.name;
+      parts.push(`穿搭上今天可以多穿${color}系的衣服，提升运气。`);
+      
+      // 3. 属相冲煞提醒（生活化表达）
+      parts.push(`今天冲${data.chongShengxiao}，属${data.chongShengxiao}的朋友今天多留意，做事谨慎些，能避免就避免。煞在${data.sha}方，这个方位尽量少动土、少折腾。`);
+      
+      // 4. 方位指引（财神/喜神，生活化表达）
+      parts.push(`财神在${data.caiDirection}，想求财、谈生意的可以面朝这个方向坐。`);
+      
+      // 5. 适合做什么 / 不适合做什么（不照搬宜忌原文，翻译成生活场景）
+      const yiItems = data.yi.filter(x => x !== "无");
+      const jiItems = data.ji.filter(x => x !== "无");
+      
+      // 宜→生活场景翻译
+      const yiLifeMap = {
+        "嫁娶": "办喜事", "纳采": "谈合作", "订盟": "签合同",
+        "祭祀": "拜拜祖先", "祈福": "去庙里祈个愿", "求嗣": "备孕调理",
+        "开光": "请佛开光", "解除": "了结旧事", "进人口": "迎接新成员",
+        "入宅": "乔迁新居", "移徙": "搬家", "出火": "出门办事",
+        "安床": "安置新床", "开市": "开张营业", "交易": "谈生意",
+        "立券": "签合同", "挂匾": "挂招牌", "出行": "出远门",
+        "动土": "装修动工", "修造": "修修补补", "破土": "开工动土",
+        "安葬": "送别安葬", "纳畜": "养小动物", "栽种": "种花种草",
+        "求财": "招财进宝", "见贵": "拜访贵人", "赴任": "走马上任"
+      };
+      
+      if (yiItems.length > 0) {
+        const yiLife = yiItems.slice(0, 4).map(item => yiLifeMap[item] || item).join("、");
+        parts.push(`今天适合${yiLife}，有计划的可以安排起来。`);
+      }
+      
+      // 忌→生活场景翻译
+      const jiLifeMap = {
+        "嫁娶": "办婚事", "纳采": "提亲", "订盟": "签合同",
+        "祭祀": "拜拜", "祈福": "祈愿",
+        "入宅": "搬家", "移徙": "搬家",
+        "开市": "开业", "交易": "谈买卖",
+        "立券": "签合同", "出行": "出远门",
+        "动土": "装修", "修造": "动工具", "破土": "开工",
+        "安葬": "办丧事", "纳畜": "养宠物",
+        "栽种": "种植", "伐木": "砍伐"
+      };
+      
+      if (jiItems.length > 0) {
+        const jiLife = jiItems.slice(0, 3).map(item => jiLifeMap[item] || item).join("、");
+        parts.push(`不太适合${jiLife}，能推就推，能避就避。`);
+      }
+      
+      // 6. 吉时提示（生活化）
+      const jiTimes = data.shichenData.filter(s => s.isJi);
+      if (jiTimes.length > 0) {
+        const firstJi = jiTimes[0];
+        const timeRange = firstJi.time;
+        parts.push(`重要事尽量安排在上午吉时，效果更顺。`);
+      }
+      
+      // 合并并截取300字
+      let advice = parts.join("");
+      if (advice.length > 300) {
+        advice = advice.substring(0, 297) + "...";
+      }
+      return advice;
+    }
+
+    // ========== 主逻辑 ==========
+    let currentDate = new Date();
+
+    function renderDay(date) {
+      const data = generateAlmanacData(date);
+
+      // 更新日期卡片
+      document.getElementById('solarDate').textContent = data.solar;
+      document.getElementById('lunarDate').textContent = data.lunar;
+      document.getElementById('ganzhi').textContent = data.ganzhi;
+      document.getElementById('weekday').textContent = data.weekday;
+      
+      // 宜
+      const yiContainer = document.getElementById('yiTags');
+      yiContainer.innerHTML = data.yi.map(item => 
+        `<span class="yiji-tag yi">${item}</span>`
+      ).join('');
+      
+      // 忌
+      const jiContainer = document.getElementById('jiTags');
+      jiContainer.innerHTML = data.ji.map(item => 
+        `<span class="yiji-tag ji">${item}</span>`
+      ).join('');
+      
+      // 详情
+      document.getElementById('wuxing').textContent = data.nayin || "-";
+      
+      // 冲煞分解为三项
+      document.getElementById('chongShengxiaoDisplay').textContent = data.chongShengxiao ? `冲${data.chongShengxiao}` : "-";
+      document.getElementById('xiongDirection').textContent = data.sha || "-";
+      
+      // 计算吉方（凶方的反方向）
+      const oppositeDir = { "东": "西", "西": "东", "南": "北", "北": "南", "东南": "西北", "西北": "东南", "东北": "西南", "西南": "东北" };
+      const jiDir = oppositeDir[data.sha] || "-";
+      document.getElementById('jiDirection').textContent = jiDir;
+      
+      document.getElementById('pengzu').textContent = data.pengzu || "-";
+      document.getElementById('jishen').textContent = data.jiShen || "无";
+      document.getElementById('xiongshen').textContent = data.xiongSha || "无";
+      
+      // 开运颜色
+      const colorDot = document.getElementById('colorDot');
+      const colorName = document.getElementById('colorName');
+      colorDot.style.backgroundColor = data.luckyColor.color;
+      if (data.luckyColor.color === '#ffffff' || data.luckyColor.color === '#f5f5f5') {
+        colorDot.style.borderColor = '#999';
+      } else {
+        colorDot.style.borderColor = 'var(--color-border)';
+      }
+      colorName.textContent = data.luckyColor.name;
+      
+      // 吉祥数字
+      document.getElementById('luckyNumber').textContent = data.luckyNumbers.join(', ');
+      
+      // 时辰吉凶
+      const shichenList = document.getElementById('shichenList');
+      shichenList.innerHTML = data.shichenData.map(item => `
+        <div class="shichen-item">
+          <div>
+            <div style="font-weight: 500;">${item.name}</div>
+            <div class="shichen-time">${item.time}时 · ${item.tianShen}</div>
+          </div>
+          <span class="shichen-status ${item.isJi ? 'ji' : 'xiong'}">${item.isJi ? '吉' : '凶'}</span>
+        </div>
+      `).join('');
+      
+      // 今日建议
+      const advice = generateAdvice(data);
+      document.getElementById('adviceContent').textContent = advice;
+      
+      // 上香日判断（农历初一、十五）
+      const isIncenseDay = data.lunarDayNum === 1 || data.lunarDayNum === 15;
+      const badge = document.getElementById('incenseBadge');
+      const banner = document.getElementById('incenseBanner');
+      
+      if (isIncenseDay) {
+        badge.style.display = 'inline-block';
+        badge.textContent = '🙏 今日上香日';
+      } else {
+        badge.style.display = 'none';
+      }
+      
+      // 提前一天提醒：检查明天是否是初一或十五
+      const tomorrow = new Date(date);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowSolar = Solar.fromYmd(tomorrow.getFullYear(), tomorrow.getMonth() + 1, tomorrow.getDate());
+      const tomorrowLunarDay = tomorrowSolar.getLunar().getDay();
+      const isTomorrowIncense = tomorrowLunarDay === 1 || tomorrowLunarDay === 15;
+      
+      if (isTomorrowIncense && !isIncenseDay) {
+        const tomorrowMonth = tomorrowSolar.getLunar().getMonthInChinese();
+        const tomorrowDayStr = tomorrowLunarDay === 1 ? "初一" : "十五";
+        banner.style.display = 'flex';
+        banner.innerHTML = `<span class="reminder-icon">🔔</span><span>提醒：明天是农历${tomorrowMonth}月${tomorrowDayStr}（上香日），请提前准备香烛供品。</span>`;
+      } else if (isIncenseDay) {
+        banner.style.display = 'flex';
+        banner.innerHTML = `<span class="reminder-icon">🙏</span><span>今日是上香日，宜焚香礼佛、祈福许愿、诵经持咒、行善布施。</span>`;
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    // 前一天
+    document.getElementById('prevDay').addEventListener('click', () => {
+      currentDate.setDate(currentDate.getDate() - 1);
+      renderDay(currentDate);
+    });
+
+    // 后一天
+    document.getElementById('nextDay').addEventListener('click', () => {
+      currentDate.setDate(currentDate.getDate() + 1);
+      renderDay(currentDate);
+    });
+
+    // 初始化
+    renderDay(currentDate);
+  </script>
+</body>
+</html>

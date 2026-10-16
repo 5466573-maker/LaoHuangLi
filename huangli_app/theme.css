@@ -1,0 +1,121 @@
+:root {
+  color-scheme: light;
+  /* 中国传统色彩 */
+  --color-primary: #c41e3a;
+  --color-primary-dark: #9e1830;
+  --color-gold: #d4a853;
+  --color-background: #f5f1e8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #faf7f0;
+  --color-text: #2c2c2c;
+  --color-muted-text: #6b6b6b;
+  --color-border: #e8e0d0;
+  --color-focus: #c41e3a;
+  --color-success: #2d7d46;
+  --color-danger: #c41e3a;
+  
+  /* 字体 */
+  --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Noto Serif SC", "Songti SC", "STSong", serif;
+  
+  /* 间距 */
+  --space-unit: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  /* 圆角 */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  
+  /* 阴影 */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  
+  /* 内容宽度 */
+  --content-width: 420px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  left: 1rem;
+  position: fixed;
+  top: 1rem;
+  transform: translateY(-200%);
+  z-index: 100;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* 移动端容器 */
+.app-container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
+/* 装饰纹样 */
+.pattern-border {
+  position: relative;
+}
+
+.pattern-border::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-primary) 0px,
+    var(--color-primary) 8px,
+    var(--color-gold) 8px,
+    var(--color-gold) 16px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
